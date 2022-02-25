@@ -17,6 +17,7 @@ import { Multiaddr, multiaddr } from "multiaddr";
 import PeerId from "peer-id";
 
 import { Bootstrap, BootstrapOptions } from "./discovery";
+import { WakuFilter } from "./waku_filter";
 import { LightPushCodec, WakuLightPush } from "./waku_light_push";
 import { DecryptionMethod, WakuMessage } from "./waku_message";
 import { RelayCodecs, WakuRelay } from "./waku_relay";
@@ -39,6 +40,7 @@ export enum Protocols {
   Relay = "relay",
   Store = "store",
   LightPush = "lightpush",
+  Filter = "filter",
 }
 
 export interface CreateOptions {
@@ -103,6 +105,7 @@ export class Waku {
   public relay: WakuRelay;
   public store: WakuStore;
   public lightPush: WakuLightPush;
+  public filter: WakuFilter;
 
   private pingKeepAliveTimers: {
     [peer: string]: ReturnType<typeof setInterval>;
@@ -115,12 +118,14 @@ export class Waku {
     options: CreateOptions,
     libp2p: Libp2p,
     store: WakuStore,
-    lightPush: WakuLightPush
+    lightPush: WakuLightPush,
+    filter: WakuFilter
   ) {
     this.libp2p = libp2p;
     this.relay = libp2p.pubsub as unknown as WakuRelay;
     this.store = store;
     this.lightPush = lightPush;
+    this.filter = filter;
     this.pingKeepAliveTimers = {};
     this.relayKeepAliveTimers = {};
 
@@ -221,9 +226,17 @@ export class Waku {
     });
     const wakuLightPush = new WakuLightPush(libp2p);
 
+    const wakuFilter = new WakuFilter();
+
     await libp2p.start();
 
-    return new Waku(options ? options : {}, libp2p, wakuStore, wakuLightPush);
+    return new Waku(
+      options ? options : {},
+      libp2p,
+      wakuStore,
+      wakuLightPush,
+      wakuFilter
+    );
   }
 
   /**
@@ -331,7 +344,7 @@ export class Waku {
    */
   async waitForRemotePeer(protocols?: Protocols[]): Promise<void> {
     const desiredProtocols = protocols ?? [Protocols.Relay, Protocols.Store];
-
+    dbg("desired protocols", Protocols);
     const promises = [];
 
     if (desiredProtocols.includes(Protocols.Relay)) {

@@ -38,6 +38,7 @@ export interface Args {
   logLevel?: LogLevel;
   persistMessages?: boolean;
   lightpush?: boolean;
+  filter?: boolean;
   topics?: string;
   rpcPrivate?: boolean;
   websocketSupport?: boolean;

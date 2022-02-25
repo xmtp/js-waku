@@ -242,4 +242,25 @@ describe("Wait for remote peer / get peers", function () {
     expect(nimPeerId).to.not.be.undefined;
     expect(peers.includes(nimPeerId as string)).to.be.true;
   });
+
+  it.skip("Filter", async function () {
+    this.timeout(20_000);
+    nimWaku = new NimWaku(makeLogFileName(this));
+    await nimWaku.start({ filter: true });
+    const multiAddrWithId = await nimWaku.getMultiaddrWithId();
+
+    waku = await Waku.create({
+      staticNoiseKey: NOISE_KEY_1,
+    });
+    await waku.dial(multiAddrWithId);
+    dbg("waitForRemotePeer");
+    await waku.waitForRemotePeer([Protocols.Filter]);
+    dbg("Done, get peers");
+    // @ts-ignore
+    const peers = waku.filter.getPeers();
+    const nimPeerId = multiAddrWithId.getPeerId();
+
+    expect(nimPeerId).to.not.be.undefined;
+    expect(peers.has(nimPeerId as string)).to.be.true;
+  });
 });

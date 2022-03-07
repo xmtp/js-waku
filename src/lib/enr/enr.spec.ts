@@ -198,8 +198,8 @@ describe("ENR", function () {
       );
     });
 
-    it("should encode/decode to RLP encoding", () => {
-      const decoded = ENR.decode(record.encode(privateKey));
+    it("should encode/decode to RLP encoding", async () => {
+      const decoded = ENR.decode(await record.encode(privateKey));
       expect(decoded).to.deep.equal(record);
     });
 

@@ -427,10 +427,10 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return v4.verify(this.publicKey, data, signature);
   }
 
-  sign(data: Uint8Array, privateKey: Uint8Array): Uint8Array {
+  async sign(data: Uint8Array, privateKey: Uint8Array): Promise<Uint8Array> {
     switch (this.id) {
       case "v4":
-        this.signature = v4.sign(privateKey, data);
+        this.signature = await v4.sign(privateKey, data);
         break;
       default:
         throw new Error(ERR_INVALID_ID);
@@ -438,7 +438,9 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return this.signature;
   }
 
-  encodeToValues(privateKey?: Uint8Array): (ENRKey | ENRValue | number[])[] {
+  async encodeToValues(
+    privateKey?: Uint8Array
+  ): Promise<(ENRKey | ENRValue | number[])[]> {
     // sort keys and flatten into [k, v, k, v, ...]
     const content: Array<ENRKey | ENRValue | number[]> = Array.from(this.keys())
       .sort((a, b) => a.localeCompare(b))
@@ -447,7 +449,9 @@ export class ENR extends Map<ENRKey, ENRValue> {
       .flat();
     content.unshift(new Uint8Array([Number(this.seq)]));
     if (privateKey) {
-      content.unshift(this.sign(hexToBytes(RLP.encode(content)), privateKey));
+      content.unshift(
+        await this.sign(hexToBytes(RLP.encode(content)), privateKey)
+      );
     } else {
       if (!this.signature) {
         throw new Error(ERR_NO_SIGNATURE);
@@ -457,8 +461,10 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return content;
   }
 
-  encode(privateKey?: Uint8Array): Uint8Array {
-    const encoded = hexToBytes(RLP.encode(this.encodeToValues(privateKey)));
+  async encode(privateKey?: Uint8Array): Promise<Uint8Array> {
+    const encoded = hexToBytes(
+      RLP.encode(await this.encodeToValues(privateKey))
+    );
     if (encoded.length >= MAX_RECORD_SIZE) {
       throw new Error("ENR must be less than 300 bytes");
     }
@@ -466,6 +472,8 @@ export class ENR extends Map<ENRKey, ENRValue> {
   }
 
   async encodeTxt(privateKey?: Uint8Array): Promise<string> {
-    return ENR.RECORD_PREFIX + (await bytesToBase64(this.encode(privateKey)));
+    return (
+      ENR.RECORD_PREFIX + (await bytesToBase64(await this.encode(privateKey)))
+    );
   }
 }

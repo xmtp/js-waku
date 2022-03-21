@@ -1,7 +1,7 @@
 import debug from "debug";
 import { Multiaddr } from "multiaddr";
 
-import { DnsNodeDiscovery } from "./dns";
+import { DnsNodeDiscovery, NodeCapabilityCount } from "./dns";
 
 import { getPredefinedBootstrapNodes, getPseudoRandomSubset } from "./index";
 
@@ -41,6 +41,11 @@ export interface BootstrapOptions {
    * "enrtree://AOFTICU2XWDULNLZGRMQS4RIZPAZEHYMV4FYHAPW563HNRAOERP7C@test.nodes.vac.dev"
    */
   enrUrl?: string;
+  /**
+   * An object that contains the type of capability (protocol) and
+   * the number of nodes that have that capability (protocol) enabled.
+   */
+  wantedNodeCapabilityCount?: NodeCapabilityCount;
 }
 
 /**
@@ -97,7 +102,11 @@ export class Bootstrap {
       const dns = DnsNodeDiscovery.dnsOverHttp();
 
       this.getBootstrapPeers = async (): Promise<Multiaddr[]> => {
-        const enrs = await dns.getPeers(maxPeers, [enrUrl]);
+        const enrs = await dns.getPeers(
+          maxPeers,
+          [enrUrl],
+          opts.wantedNodeCapabilityCount
+        );
         dbg(`Found ${enrs.length} peers`);
         return enrs.map((enr) => enr.getFullMultiaddrs()).flat();
       };

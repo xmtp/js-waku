@@ -1,4 +1,5 @@
-import { assert, expect } from "chai";
+import { assert, expect, use } from "chai";
+import chaibytes from "chai-bytes";
 import { Multiaddr } from "multiaddr";
 import PeerId from "peer-id";
 
@@ -11,7 +12,9 @@ import { Waku2 } from "./waku2_codec";
 
 import { v4 } from "./index";
 
-describe("ENR", function () {
+use(chaibytes);
+
+describe.only("ENR", function () {
   describe("Txt codec", () => {
     it("should encodeTxt and decodeTxt", async () => {
       const peerId = await PeerId.create({ keyType: "secp256k1" });
@@ -29,9 +32,22 @@ describe("ENR", function () {
           "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
         ),
       ];
-      const txt = enr.encodeTxt(keypair.privateKey);
 
+      enr.waku2 = {
+        relay: true,
+        store: false,
+        filter: true,
+        lightpush: false,
+      };
+
+      console.log("enr:", enr);
+      console.log("===================");
+      const txt = enr.encodeTxt(keypair.privateKey);
+      console.log("txt:", txt);
+      console.log("===================");
       const enr2 = ENR.decodeTxt(txt);
+      console.log("enr2:", enr2);
+
       if (!enr.signature) throw "enr.signature is undefined";
       if (!enr2.signature) throw "enr.signature is undefined";
 
@@ -49,6 +65,9 @@ describe("ENR", function () {
       );
       expect(multiaddrsAsStr).to.include(
         "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
+      );
+      expect(enr2.waku2).to.equalBytes(
+        new Uint8Array([1, 0, 1, 0, 0, 0, 0, 0])
       );
     });
 
@@ -403,6 +422,66 @@ describe("ENR", function () {
       expect(decoded.relay).to.equal(true);
       expect(decoded.store).to.equal(true);
       expect(decoded.filter).to.equal(true);
+      expect(decoded.lightpush).to.equal(true);
+    });
+
+    it("should set field with only RELAY enabled", () => {
+      waku2Protocols.relay = true;
+      waku2Protocols.store = false;
+      waku2Protocols.filter = false;
+      waku2Protocols.lightpush = false;
+
+      enr.waku2 = waku2Protocols;
+      const decoded = enr.waku2;
+
+      expect(decoded.relay).to.equal(true);
+      expect(decoded.store).to.equal(false);
+      expect(decoded.filter).to.equal(false);
+      expect(decoded.lightpush).to.equal(false);
+    });
+
+    it("should set field with only STORE enabled", () => {
+      waku2Protocols.relay = false;
+      waku2Protocols.store = true;
+      waku2Protocols.filter = false;
+      waku2Protocols.lightpush = false;
+
+      enr.waku2 = waku2Protocols;
+      const decoded = enr.waku2;
+
+      expect(decoded.relay).to.equal(false);
+      expect(decoded.store).to.equal(true);
+      expect(decoded.filter).to.equal(false);
+      expect(decoded.lightpush).to.equal(false);
+    });
+
+    it("should set field with only FILTER enabled", () => {
+      waku2Protocols.relay = false;
+      waku2Protocols.store = false;
+      waku2Protocols.filter = true;
+      waku2Protocols.lightpush = false;
+
+      enr.waku2 = waku2Protocols;
+      const decoded = enr.waku2;
+
+      expect(decoded.relay).to.equal(false);
+      expect(decoded.store).to.equal(false);
+      expect(decoded.filter).to.equal(true);
+      expect(decoded.lightpush).to.equal(false);
+    });
+
+    it("should set field with only LIGHTPUSH enabled", () => {
+      waku2Protocols.relay = false;
+      waku2Protocols.store = false;
+      waku2Protocols.filter = false;
+      waku2Protocols.lightpush = true;
+
+      enr.waku2 = waku2Protocols;
+      const decoded = enr.waku2;
+
+      expect(decoded.relay).to.equal(false);
+      expect(decoded.store).to.equal(false);
+      expect(decoded.filter).to.equal(false);
       expect(decoded.lightpush).to.equal(true);
     });
   });

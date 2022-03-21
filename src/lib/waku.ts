@@ -146,6 +146,8 @@ export class Waku {
    * Create and start new waku node.
    */
   static async create(options?: CreateOptions): Promise<Waku> {
+    console.log("BOOTSTRAP OPTIONS:", options);
+
     // Get an object in case options or libp2p are undefined
     const libp2pOpts = Object.assign({}, options?.libp2p);
 

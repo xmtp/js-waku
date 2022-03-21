@@ -19,6 +19,13 @@ export interface DnsClient {
   resolveTXT: (domain: string) => Promise<string[]>;
 }
 
+export interface NodeCapabilityCount {
+  relay?: number;
+  store?: number;
+  filter?: number;
+  lightpush?: number;
+}
+
 export class DnsNodeDiscovery {
   private readonly dns: DnsClient;
   private readonly _DNSTreeCache: { [key: string]: string };
@@ -34,10 +41,24 @@ export class DnsNodeDiscovery {
    * return fewer peers than requested if `maxQuantity` is larger than the number
    * of ENR records or the number of errors/duplicate peers encountered by randomized
    * search exceeds `maxQuantity` plus the `errorTolerance` factor.
+   * Will return peers only with certain capabilities (protocols) enabled if
+   *  `wantedNodeCapabilityCount` object is passed in.
    */
-  async getPeers(maxQuantity: number, enrTreeUrls: string[]): Promise<ENR[]> {
+  async getPeers(
+    maxQuantity: number,
+    enrTreeUrls: string[],
+    wantedNodeCapabilityCount: NodeCapabilityCount | undefined
+  ): Promise<ENR[]> {
     let totalSearches = 0;
     const peers: ENR[] = [];
+
+    console.log("wantedNodeCapabilityCount:", wantedNodeCapabilityCount);
+
+    // wantedNodeCapabilityCount gets passed to getPeers
+    // look for these caps on returned ENR from _search
+    // add in new switch statement? to _search to return caps
+    // verify caps?
+    // DOCUMENT DOCUMENT DOCUMENT function, api, params etc
 
     const networkIndex = Math.floor(Math.random() * enrTreeUrls.length);
     const { publicKey, domain } = ENRTree.parseTree(enrTreeUrls[networkIndex]);
@@ -55,6 +76,7 @@ export class DnsNodeDiscovery {
       const peer = await this._search(domain, context);
 
       if (peer && isNewPeer(peer, peers)) {
+        console.log("peer:", peer);
         peers.push(peer);
         dbg(
           `got new peer candidate from DNS address=${peer.nodeId}@${peer.ip}`

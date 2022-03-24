@@ -14,19 +14,19 @@ import { v4 } from "./index";
 
 use(chaibytes);
 
-describe.only("ENR", function () {
+describe("ENR", function () {
   describe("Txt codec", () => {
-    it("should encodeTxt and decodeTxt", async () => {
+    it.only("should encodeTxt and decodeTxt", async () => {
       const peerId = await PeerId.create({ keyType: "secp256k1" });
       const enr = ENR.createFromPeerId(peerId);
       const keypair = createKeypairFromPeerId(peerId);
       enr.setLocationMultiaddr(new Multiaddr("/ip4/18.223.219.100/udp/9000"));
       enr.multiaddrs = [
         new Multiaddr(
-          "/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/443/wss"
+          "/dns4/node1.do-ams.wakuv2.test.statusim.net/tcp/443/wss"
         ),
         new Multiaddr(
-          "/dns6/node-01.ac-cn-hongkong-c.wakuv2.test.statusim.net/tcp/443/wss"
+          "/dns6/node2.ac-chi.wakuv2.test.statusim.net/tcp/443/wss"
         ),
         new Multiaddr(
           "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
@@ -40,7 +40,7 @@ describe.only("ENR", function () {
         lightpush: false,
       };
 
-      console.log("enr:", enr);
+      console.log("enr in test file:", enr);
       console.log("===================");
       const txt = enr.encodeTxt(keypair.privateKey);
       console.log("txt:", txt);

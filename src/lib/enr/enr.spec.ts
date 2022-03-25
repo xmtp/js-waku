@@ -1,5 +1,4 @@
-import { assert, expect, use } from "chai";
-import chaibytes from "chai-bytes";
+import { assert, expect } from "chai";
 import { Multiaddr } from "multiaddr";
 import PeerId from "peer-id";
 
@@ -12,11 +11,9 @@ import { Waku2 } from "./waku2_codec";
 
 import { v4 } from "./index";
 
-use(chaibytes);
-
 describe("ENR", function () {
   describe("Txt codec", () => {
-    it.only("should encodeTxt and decodeTxt", async () => {
+    it("should encodeTxt and decodeTxt", async () => {
       const peerId = await PeerId.create({ keyType: "secp256k1" });
       const enr = ENR.createFromPeerId(peerId);
       const keypair = createKeypairFromPeerId(peerId);
@@ -40,13 +37,8 @@ describe("ENR", function () {
         lightpush: false,
       };
 
-      console.log("enr in test file:", enr);
-      console.log("===================");
       const txt = enr.encodeTxt(keypair.privateKey);
-      console.log("txt:", txt);
-      console.log("===================");
       const enr2 = ENR.decodeTxt(txt);
-      console.log("enr2:", enr2);
 
       if (!enr.signature) throw "enr.signature is undefined";
       if (!enr2.signature) throw "enr.signature is undefined";
@@ -58,17 +50,20 @@ describe("ENR", function () {
       expect(enr2.multiaddrs!.length).to.be.equal(3);
       const multiaddrsAsStr = enr2.multiaddrs!.map((ma) => ma.toString());
       expect(multiaddrsAsStr).to.include(
-        "/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/443/wss"
+        "/dns4/node1.do-ams.wakuv2.test.statusim.net/tcp/443/wss"
       );
       expect(multiaddrsAsStr).to.include(
-        "/dns6/node-01.ac-cn-hongkong-c.wakuv2.test.statusim.net/tcp/443/wss"
+        "/dns6/node2.ac-chi.wakuv2.test.statusim.net/tcp/443/wss"
       );
       expect(multiaddrsAsStr).to.include(
         "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
       );
-      expect(enr2.waku2).to.equalBytes(
-        new Uint8Array([1, 0, 1, 0, 0, 0, 0, 0])
-      );
+      expect(enr2.waku2).to.deep.equal({
+        relay: true,
+        store: false,
+        filter: true,
+        lightpush: false,
+      });
     });
 
     it("should decode valid enr successfully", () => {

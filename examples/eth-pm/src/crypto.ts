@@ -121,5 +121,5 @@ export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
   console.log("Recovered", recovered);
   console.log("ethAddress", "0x" + utils.bytesToHex(msg.ethAddress));
 
-  return utils.equalByteArrays(recovered, msg.ethAddress);
+  return equals(utils.hexToBytes(recovered), msg.ethAddress);
 }

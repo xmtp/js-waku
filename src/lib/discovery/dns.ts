@@ -54,11 +54,7 @@ export class DnsNodeDiscovery {
 
     console.log("wantedNodeCapabilityCount:", wantedNodeCapabilityCount);
 
-    // wantedNodeCapabilityCount gets passed to getPeers
-    // look for these caps on returned ENR from _search
-    // add in new switch statement? to _search to return caps
-    // verify caps?
-    // DOCUMENT DOCUMENT DOCUMENT function, api, params etc
+    console.log("enrTreeUrls:", enrTreeUrls);
 
     const networkIndex = Math.floor(Math.random() * enrTreeUrls.length);
     const { publicKey, domain } = ENRTree.parseTree(enrTreeUrls[networkIndex]);

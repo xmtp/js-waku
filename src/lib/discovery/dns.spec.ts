@@ -16,10 +16,10 @@ const mockData = testData.dns;
 
 const host = "nodes.example.org";
 const rootDomain = "JORXBYVVM7AEKETX5DGXW44EAY";
-// const branchDomainA = "D2SNLTAGWNQ34NTQTPHNZDECFU";
-// const branchDomainB = "D3SNLTAGWNQ34NTQTPHNZDECFU";
-// const branchDomainC = "D4SNLTAGWNQ34NTQTPHNZDECFU";
-// const branchDomainD = "D5SNLTAGWNQ34NTQTPHNZDECFU";
+const branchDomainA = "D2SNLTAGWNQ34NTQTPHNZDECFU";
+const branchDomainB = "D3SNLTAGWNQ34NTQTPHNZDECFU";
+const branchDomainC = "D4SNLTAGWNQ34NTQTPHNZDECFU";
+const branchDomainD = "D5SNLTAGWNQ34NTQTPHNZDECFU";
 // const partialBranchA = "AAAA";
 // const partialBranchB = "BBBB";
 // const singleBranch = `enrtree-branch:${branchDomainA}`;
@@ -105,8 +105,10 @@ describe("DNS Node Discovery", () => {
   //     mockData.enrB,
   //   ]);
 
+  //   console.log("mockDns:", mockDns);
+
   //   const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
-  //   const peers = await dnsNodeDiscovery.getPeers(50, [mockData.enrTree]);
+  //   const peers = await dnsNodeDiscovery.getPeers(50, [mockData.enrTree], {});
 
   //   expect(peers.length).to.eq(3);
   //   expect(peers[0].ip).to.not.eq(peers[1].ip);
@@ -196,11 +198,45 @@ describe("DNS Node Discovery", () => {
       };
     });
 
+    it.only("wip - store with 1", async () => {
+      // mockDns.addRes(`${rootDomain}.${host}`, [mockData.enrWithWaku2Relay]);
+      mockDns.addRes(`${branchDomainA}.${host}`, [mockData.enrWithWaku2Relay]);
+      mockDns.addRes(`${branchDomainB}.${host}`, [mockData.enrWithWaku2Store]);
+      mockDns.addRes(`${branchDomainC}.${host}`, [mockData.enrWithWaku2Filter]);
+      mockDns.addRes(`${branchDomainD}.${host}`, [
+        mockData.enrWithWaku2Lightpush,
+      ]);
+
+      waku2Capabilities.store = true;
+      wantedNodeCapabilityCount.store = 1;
+
+      console.log("mockDns:", mockDns);
+
+      // const enrTreeRoot = [...mockDns.fqdnRes][0];
+
+      // console.log("enrTreeRoot:", enrTreeRoot);
+
+      const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
+      const peers = await dnsNodeDiscovery.getPeers(
+        2,
+        [mockData.enrTree],
+        wantedNodeCapabilityCount
+      );
+
+      console.log("peers[0].waku2 (store):", peers[0].waku2);
+      console.log("peers.length:", peers.length);
+
+      expect(peers.length).to.eq(1);
+      expect(peers[0].waku2).to.deep.equal(waku2Capabilities);
+    });
+
     it("should only return 1 node with relay capability", async () => {
       mockDns.addRes(`${rootDomain}.${host}`, [mockData.enrWithWaku2Relay]);
 
       waku2Capabilities.relay = true;
       wantedNodeCapabilityCount.relay = 1;
+
+      console.log("mockDns:", mockDns);
 
       const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
       const peers = await dnsNodeDiscovery.getPeers(
@@ -216,10 +252,18 @@ describe("DNS Node Discovery", () => {
     });
 
     it("should only return 1 node with store capability", async () => {
-      mockDns.addRes(`${rootDomain}.${host}`, [mockData.enrWithWaku2Store]);
+      mockDns.addRes(`${rootDomain}.${host}`, [mockData.enrWithWaku2Relay]);
+      mockDns.addRes(`${branchDomainA}.${host}`, [mockData.enrWithWaku2Store]);
+      mockDns.addRes(`${branchDomainB}.${host}`, [mockData.enrWithWaku2Filter]);
+      mockDns.addRes(`${branchDomainC}.${host}`, [mockData.enrWithWaku2Filter]);
+      mockDns.addRes(`${branchDomainD}.${host}`, [
+        mockData.enrWithWaku2Lightpush,
+      ]);
 
       waku2Capabilities.store = true;
       wantedNodeCapabilityCount.store = 1;
+
+      console.log("mockDns:", mockDns);
 
       const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
       const peers = await dnsNodeDiscovery.getPeers(
@@ -229,6 +273,7 @@ describe("DNS Node Discovery", () => {
       );
 
       console.log("peers[0].waku2 (store):", peers[0].waku2);
+      console.log("peers.length:", peers.length);
 
       expect(peers.length).to.eq(1);
       expect(peers[0].waku2).to.deep.equal(waku2Capabilities);

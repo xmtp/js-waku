@@ -52,12 +52,10 @@ export class DnsNodeDiscovery {
     let totalSearches = 0;
     const peers: ENR[] = [];
 
-    console.log("wantedNodeCapabilityCount:", wantedNodeCapabilityCount);
-
-    console.log("enrTreeUrls:", enrTreeUrls);
-
     const networkIndex = Math.floor(Math.random() * enrTreeUrls.length);
     const { publicKey, domain } = ENRTree.parseTree(enrTreeUrls[networkIndex]);
+
+    console.log("wantedNodeCapabilityCount:", wantedNodeCapabilityCount);
 
     while (
       peers.length < maxQuantity &&
@@ -105,6 +103,9 @@ export class DnsNodeDiscovery {
       let branches: string[];
 
       const entryType = getEntryType(entry);
+
+      // console.log(entry)
+      // console.log('entryType', entryType)
       try {
         switch (entryType) {
           case ENRTree.ROOT_PREFIX:

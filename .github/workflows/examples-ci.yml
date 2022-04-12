@@ -48,27 +48,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install NodeJS
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: "16"
+          cache: "yarn"
+          cache-dependency-path: "examples/relay-angular-chat/yarn.lock"
 
       - name: Install relay-angular-chat
-        uses: borales/actions-yarn@v2.0.0
-        with:
-          cmd: install
-          working-directory: examples/relay-angular-chat
-
-      - name: Build relay-angular-chat
-        uses: borales/actions-yarn@v2.0.0
-        with:
-          cmd: build
-          working-directory: examples/relay-angular-chat
+        run: yarn install
+        working-directory: examples/relay-angular-chat
 
       - name: Test relay-angular-chat
-        uses: borales/actions-yarn@v2.0.0
-        with:
-          cmd: test-ci
-          working-directory: examples/relay-angular-chat
+        run: yarn run test-ci
+        working-directory: examples/relay-angular-chat

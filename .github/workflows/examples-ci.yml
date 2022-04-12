@@ -54,7 +54,6 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: "16"
-          cache: "yarn"
 
       - name: Install relay-angular-chat
         uses: borales/actions-yarn@v2.0.0
